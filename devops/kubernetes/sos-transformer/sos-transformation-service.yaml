@@ -1,0 +1,66 @@
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: namespace-reader
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "pods", "services", "endpoints", "secrets"]
+    verbs: ["get", "list", "watch"]
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+
+metadata:
+  name: namespace-reader-binding
+subjects:
+  - kind: ServiceAccount
+    name: default
+    apiGroup: ""
+roleRef:
+  kind: Role
+  name: namespace-reader
+  apiGroup: ""
+
+---
+kind: ConfigMap
+apiVersion: v1
+
+metadata:
+  name: sos-transform-service-config
+data:
+  application.json:
+    ' {
+    "mil.afdcgs.merlin.sos.kafka.bootstrap-server": "kafka.merlin-phase1.svc.cluster.local:9092",
+    "mil.afdcgs.merlin.sos.kafka.partition-count": "1",
+    "mil.afdcgs.merlin.sos.kafka.replica-count": "1"
+  }'
+
+---
+kind: Deployment
+apiVersion: apps/v1
+
+metadata:
+  name: sos-transformation-service
+  labels:
+    name: sos-transformation-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: sos-transformation-service
+  template:
+    metadata:
+      labels:
+        name: sos-transformation-service
+    spec:
+      containers:
+        - name: test-app
+          image: registry.local/sos-transformation-service:latest
+          env:
+            - name: SPRING_APPLICATION_JSON
+              valueFrom:
+                configMapKeyRef:
+                  name: sos-transform-service-config
+                  key: application.json
