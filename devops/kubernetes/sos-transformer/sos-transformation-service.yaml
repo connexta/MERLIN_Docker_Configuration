@@ -57,7 +57,8 @@ spec:
     spec:
       containers:
         - name: test-app
-          image: registry.local/sos-transformation-service:0.0.1-SNAPSHOT
+          imagePullPolicy: IfNotPresent
+          image: registry.local/sos-transformation-service:latest
           env:
             - name: SPRING_APPLICATION_JSON
               valueFrom:

@@ -30,7 +30,8 @@ spec:
     spec:
       containers:
         - name: sos-endpoint
-          image: registry.local/sos-endpoint:0.0.1-SNAPSHOT
+          imagePullPolicy: IfNotPresent
+          image: registry.local/sos-endpoint:latest
           env:
             - name: SPRING_APPLICATION_JSON
               valueFrom:

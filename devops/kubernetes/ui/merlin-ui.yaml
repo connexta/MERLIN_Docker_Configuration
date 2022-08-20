@@ -18,7 +18,8 @@ spec:
     spec:
       containers:
         - name: merlin-ui
-          image: merlin-ui:0.0.1-SNAPSHOT
+          imagePullPolicy: IfNotPresent
+          image: merlin-ui:latest
           ports:
             - containerPort: 3000
               name: merlin-ui-port
