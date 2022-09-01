@@ -41,34 +41,52 @@ services:
       KAFKA_CLUSTERS_0_ZOOKEEPER: 'zookeeper:2181'
 
 ###Start SOS Endpoint
-  sos-endpoint:
-    image: registry.local/sos-endpoint:latest
-    container_name: sos-endpoint
+  sos-endpoint-controller:
+    image: registry.localdev.me/sos-endpoint-controller:latest
+    container_name: sos-endpoint-controller
     ports:
-      - "8080:8080"
+      - "80:8080"
     #entrypoint: tail -F anything
     depends_on:
       - kafka
+      - sos-endpoint-initializer
     environment:
-      MIL_AFDCGS_MERLIN_MOCKMESSAGE_KAFKA_BOOTSTRAP_SERVER: "kafka:9092"
+      MIL_DIA_MERLIN_MOCKMESSAGE_KAFKA_BOOTSTRAP_SERVER: "kafka:9092"
       SERVER_PORT: 8080
 
-###Start SOS Transformer
-  sos-transformer:
-    image: registry.local/sos-transformation-service:latest
-    container_name: sos-transformer
+  sos-endpoint-initializer:
+    image: registry.localdev.me/sos-endpoint-initializer:latest
+    container_name: sos-endpoint-initializer
     depends_on:
       - kafka
-#    ports:
-#      - "8080:8080"
     environment:
-      MIL_AFDCGS_MERLIN_SOS_KAFKA_BOOTSTRAP_SERVER: "kafka:9092"
-      MIL_AFDCGS_MERLIN_SOS_KAFKA_PARTITION_COUNT: 1
-      MIL_AFDCGS_MERLIN_SOS_KAFKA_REPLICA_COUNT: 1
+      MIL_DIA_MERLIN_MOCKMESSAGE_KAFKA_BOOTSTRAP_SERVER: "kafka:9092"
+
+###Start SOS Transformer
+  sos-transformer-service:
+    image: registry.localdev.me/sos-transformer-service:latest
+    container_name: sos-transformer-service
+    depends_on:
+      - kafka
+      - sos-transformer-initializer
+    environment:
+      MIL_DIA_MERLIN_SOS_KAFKA_BOOTSTRAP_SERVER: "kafka:9092"
+      MIL_DIA_MERLIN_SOS_KAFKA_PARTITION_COUNT: 1
+      MIL_DIA_MERLIN_SOS_KAFKA_REPLICA_COUNT: 1
+
+  sos-transformer-initializer:
+    image: registry.localdev.me/sos-transformer-initializer:latest
+    container_name: sos-transformer-initializer
+    depends_on:
+        - kafka
+    environment:
+      MIL_DIA_MERLIN_SOS_KAFKA_BOOTSTRAP_SERVER: "kafka:9092"
+      MIL_DIA_MERLIN_SOS_KAFKA_PARTITION_COUNT: 1
+      MIL_DIA_MERLIN_SOS_KAFKA_REPLICA_COUNT: 1
 
 ###Start MERLIN UI
   merlin-ui:
-    image: merlin-ui
+    image: registry.localdev.me/merlin-ui:latest
     container_name: merlin-ui
     ports:
       - "3000:3000"
